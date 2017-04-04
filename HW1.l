@@ -2,8 +2,14 @@
 #include <stdio.h>
 int num_lines;
 %}
-
+%x comment
 %%
+"/*"	{
+	BEGIN(comment);
+	}
+<comment>"*/"	{
+	BEGIN(INITIAL);
+	}
 \n	{
 		num_lines++;
 	}
