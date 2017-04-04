@@ -3,6 +3,7 @@
 int num_lines;
 %}
 %x comment
+%x string
 %%
 "/*"	{
 	BEGIN(comment);
@@ -10,6 +11,17 @@ int num_lines;
 <comment>"*/"	{
 	BEGIN(INITIAL);
 	}
+\"	{
+	BEGIN(string);
+}
+<string>{
+	\"	{
+			BEGIN(INITIAL);
+		}
+	(.|\n)*	{
+			printf("#string:%s\n", yytext);
+	}	
+}
 \n	{
 		num_lines++;
 	}
