@@ -93,6 +93,17 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"="|"&&"|"||"|"!"|"*"|"&"	{
 	printf("#op:%s\n", yytext);
 }
+[0-9]+	{
+/*Intergers*/
+	printf("#int:%s\n", yytext);
+}
+[0-9]+\.[0-9]+	{
+/*doubles*/
+	printf("#double:%s\n", yytext);
+}
+[0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+	{
+	printf("sci:%s\n", yytext);
+}
 %%
 int main(int argc, char* argv[]){
 	--argc;
