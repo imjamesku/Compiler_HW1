@@ -84,6 +84,9 @@ char *string_buf_ptr;
 \n	{
 	num_lines++;
 }
+" "	{
+/*space*/
+}
 void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue|const|true|false|struct|case|default	{
 	printf("#key:%s\n", yytext);
 }
@@ -102,7 +105,12 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	printf("#double:%s\n", yytext);
 }
 [0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+	{
-	printf("sci:%s\n", yytext);
+/*scientific notation*/
+	printf("#sci:%s\n", yytext);
+}
+[a-zA-Z_][a-zA-Z0-9_]*	{
+/*identifiers*/
+	printf("#id:%s\n", yytext);
 }
 %%
 int main(int argc, char* argv[]){
