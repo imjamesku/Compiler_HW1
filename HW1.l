@@ -1,12 +1,13 @@
 %{
 #include <stdio.h>
 #define MAX_STR_CONST 2048
-int num_lines;
+int num_lines, char_counter;
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 %}
 %x comment
 %x string
+%x char_condition
 %%
 "/*"	{
 		BEGIN(comment);
@@ -52,6 +53,32 @@ char *string_buf_ptr;
 			*string_buf_ptr++ = *yptr++;
 		}
 	}
+}
+
+\'	{
+	BEGIN(char_condition);
+	char_counter = 0;
+}
+<char_condition>{
+	/*If char_counter>=1 error, there should be only 1 char in the quote.*/
+	\'	{
+		BEGIN(INITIAL);
+	}
+	[ -~]	{
+		printf("#char:%c\n", yytext[0]);
+		char_counter++;
+	}
+	\\n	{
+		printf("#char:%c\n", '\n');
+		char_counter++;
+	}
+	\\t	{
+		printf("#char:%c\n", '\t');
+		char_counter++;
+	}
+	/*\\r	printf("#char:%c\n", '\r');
+	\\b	printf("#char:%c\n", '\b');
+	\\f	printf("#char:%c\n", '\f');*/
 }
 
 \n	{
