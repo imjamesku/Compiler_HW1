@@ -41,8 +41,14 @@ char *string_buf_ptr;
 		/*generate error - bad sequence
 		something like \48 (larger than 8) or \077777*/
 	}
-	\\n	*string_buf_ptr++ = '\n';
-	\\t	*string_buf_ptr++ = '\t';
+	\\n	{	*string_buf_ptr++ = '\\';
+			*string_buf_ptr++ = 'n';
+			
+	}
+	\\t	{	*string_buf_ptr++ = '\\';
+			*string_buf_ptr++ = 't';
+			
+	}
 	\\r	*string_buf_ptr++ = '\r';
 	\\b	*string_buf_ptr++ = '\b';
 	\\f	*string_buf_ptr++ = '\f';
@@ -69,11 +75,11 @@ char *string_buf_ptr;
 		char_counter++;
 	}
 	\\n	{
-		printf("#char:%c\n", '\n');
+		printf("#char:\\n\n");
 		char_counter++;
 	}
 	\\t	{
-		printf("#char:%c\n", '\t');
+		printf("#char:\\t\n");
 		char_counter++;
 	}
 	/*\\r	printf("#char:%c\n", '\r');
@@ -82,10 +88,15 @@ char *string_buf_ptr;
 }
 
 \n	{
+/*new line*/
 	num_lines++;
+	printf("-------line %d-------\n", num_lines);
 }
 " "	{
 /*space*/
+}
+\t	{
+/*tabs*/
 }
 void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue|const|true|false|struct|case|default	{
 	printf("#key:%s\n", yytext);
