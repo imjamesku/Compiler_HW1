@@ -53,15 +53,21 @@ char *line_buf_ptr = line_buf;
 "//"	{
 	/*oneLineComment start*/
 	BEGIN(oneLineComment);
-	printf("//");
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+	//printf("//");
 }
 <oneLineComment>\n	{
 /*new line*/
-	num_lines++;
-	printf("\n");
+	//num_lines++;
+	//printf("\n");
 	BEGIN(INITIAL);
+	unput('\n');
 }
-
+<oneLineComment>[^\n]*	{
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
 \"	{/*string  starting quote*/
 		string_buf_ptr = string_buf;
 		BEGIN(string);
@@ -187,14 +193,14 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-[0-9]+	{
+([1-9][0-9]*|0)/[^0-9]	{
 /*Integers*/
 	if(token_on)
 		printf("#integer:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-[0-9]+\.[0-9]+	{
+([1-9][0-9]*|0)\.[0-9]+	{
 /*doubles*/
 	if(token_on)
 		printf("#double:%s\n", yytext);
@@ -214,6 +220,10 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 		printf("#id:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
+}
+.	{
+	fprintf(stderr, "Error at line %d: %s\n", num_lines, yytext);
+	exit(1);
 }
 %%
 int main(int argc, char* argv[]){
