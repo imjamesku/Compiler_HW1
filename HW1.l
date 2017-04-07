@@ -3,6 +3,7 @@
 #include <string.h>
 #define MAX_STR_CONST 2048
 int num_lines, char_counter;
+int source_on = 1, token_on = 1;
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 char line_buf[MAX_STR_CONST];
@@ -13,6 +14,26 @@ char *line_buf_ptr = line_buf;
 %x char_condition
 %x oneLineComment
 %%
+"#pragma source on"	{
+	source_on = 1;
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
+"#pragma source off"	{
+	source_on = 0;
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
+"#pragma token on"	{
+	token_on = 1;
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
+"#pragma token off"	{
+	token_on = 0;
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
 "/*"	{
 	/*comment start*/
 		BEGIN(comment);
@@ -49,7 +70,8 @@ char *line_buf_ptr = line_buf;
 	\"	{/*closing quote*/
 			BEGIN(INITIAL);
 			string_buf_ptr = '\0';
-			printf("#string:%s\n", string_buf);
+			if(token_on)
+				printf("#string:%s\n", string_buf);
 			strcpy(line_buf_ptr, string_buf);
 			line_buf_ptr += strlen(string_buf);
 		}
@@ -103,19 +125,22 @@ char *line_buf_ptr = line_buf;
 		line_buf_ptr += strlen(yytext);
 	}
 	[ -~]	{
-		printf("#char:%c\n", yytext[0]);
+		if(token_on)
+			printf("#char:%c\n", yytext[0]);
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
 	}
 	\\n	{
-		printf("#char:\\n\n");
+		if(token_on)
+			printf("#char:\\n\n");
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
 	}
 	\\t	{
-		printf("#char:\\t\n");
+		if(token_on)
+			printf("#char:\\t\n");
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
@@ -130,7 +155,8 @@ char *line_buf_ptr = line_buf;
 	num_lines++;
 	*line_buf_ptr++ = '\0';
 	//printf("-------line %d-------\n", num_lines);
-	printf("%d:%s\n", num_lines, line_buf);
+	if(source_on)
+		printf("%d:%s\n", num_lines, line_buf);
 	line_buf_ptr = line_buf;
 }
 " "	{
@@ -144,41 +170,48 @@ char *line_buf_ptr = line_buf;
 	line_buf_ptr += strlen(yytext);
 }
 void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue|const|true|false|struct|case|default	{
-	printf("#key:%s\n", yytext);
+	if(token_on)
+		printf("#key:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 ":"|";"|","|"."|"("|")"|"["|"]"|"{"|"}"	{
-	printf("#punc:%s\n", yytext);
+	if(token_on)
+		printf("#punc:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"="|"&&"|"||"|"!"|"*"|"&"	{
-	printf("#op:%s\n", yytext);
+	if(token_on)
+		printf("#op:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 [0-9]+	{
 /*Integers*/
-	printf("#integer:%s\n", yytext);
+	if(token_on)
+		printf("#integer:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 [0-9]+\.[0-9]+	{
 /*doubles*/
-	printf("#double:%s\n", yytext);
+	if(token_on)
+		printf("#double:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 [0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+	{
 /*scientific notation*/
-	printf("#sci:%s\n", yytext);
+	if(token_on)
+		printf("#sci:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
 [a-zA-Z_][a-zA-Z0-9_]*	{
 /*identifiers*/
-	printf("#id:%s\n", yytext);
+	if(token_on)
+		printf("#id:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
