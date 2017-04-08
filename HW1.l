@@ -82,61 +82,17 @@ char *line_buf_ptr = line_buf;
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-\"	{/*string  starting quote*/
-		string_buf_ptr = string_buf;
+\".*\"	{
+/*string  starting quote*/
+		strcpy(string_buf, yytext);
+		string_buf[yyleng-1] = '\0';
+		string_buf_ptr = string_buf+1;
+		if(token_on)
+			printf("#string:%s\n", string_buf_ptr);
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += yyleng;
-		BEGIN(string);
-	}
-<string>{
-	\"	{/*closing quote*/
-			BEGIN(INITIAL);
-			string_buf_ptr = '\0';
-			if(token_on)
-				printf("#string:%s\n", string_buf);
-			strcpy(line_buf_ptr, string_buf);
-			line_buf_ptr += strlen(string_buf);
-			strcpy(line_buf_ptr, yytext);
-			line_buf_ptr += yyleng;
-			
-		}
-	\n	{/*error - unterminated string constant*/
-
-	}
-	\\[0-7]{1,3}	{
-		/*octal escape sequence*/
-		int result;
-		(void) sscanf(yytext + 1, "%o", &result);
-		if(result > 0xff){
-			/*error, out of bound*/
-		}
-		*string_buf_ptr++ = result;
-	}
-	\\[0-9]+	{
-		/*generate error - bad sequence
-		something like \48 (larger than 8) or \077777*/
-	}
-	\\n	{	*string_buf_ptr++ = '\\';
-			*string_buf_ptr++ = 'n';
-			
-	}
-	\\t	{	*string_buf_ptr++ = '\\';
-			*string_buf_ptr++ = 't';
-			
-	}
-	\\r	*string_buf_ptr++ = '\r';
-	\\b	*string_buf_ptr++ = '\b';
-	\\f	*string_buf_ptr++ = '\f';
-	\\(.|\n)	*string_buf_ptr++ = yytext[1];
-	[^\\\n\"]+	{
-		char* yptr = yytext;
-		while(*yptr){
-			*string_buf_ptr++ = *yptr++;
-		}
-	}
 }
-
-\'	{
+"'"	{
 	BEGIN(char_condition);
 	char_counter = 0;
 	strcpy(line_buf_ptr, yytext);
@@ -150,6 +106,11 @@ char *line_buf_ptr = line_buf;
 		line_buf_ptr += strlen(yytext);
 	}
 	[ -~]	{
+		if(char_counter > 0){	
+			fprintf(stderr, "Error at line %d: %s\n", num_lines, yytext);
+			exit(1);
+		}
+			
 		if(token_on)
 			printf("#char:\'%c\'\n", yytext[0]);
 		char_counter++;
@@ -157,6 +118,10 @@ char *line_buf_ptr = line_buf;
 		line_buf_ptr += strlen(yytext);
 	}
 	\\n	{
+		if(char_counter > 0){
+			fprintf(stderr, "Error at line %d: %s\n", num_lines, yytext);
+			exit(1);
+		}
 		if(token_on)
 			printf("#char:\'\\n\'\n");
 		char_counter++;
@@ -164,6 +129,10 @@ char *line_buf_ptr = line_buf;
 		line_buf_ptr += strlen(yytext);
 	}
 	\\t	{
+		if(char_counter > 0){
+			fprintf(stderr, "Error at line %d: %s\n", num_lines, yytext);
+			exit(1);
+		}
 		if(token_on)
 			printf("#char:\'\\t\'\n");
 		char_counter++;
@@ -213,14 +182,14 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)	{
+([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)/[^0-9a-zA-Z_]	{
 /*doubles*/
 	if(token_on)
 		printf("#double:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-([1-9][0-9]*|0)/[^0-9]	{
+([1-9][0-9]*|0)/[^0-9a-zA-Z_\.]	{
 /*Integers*/
 	if(token_on)
 		printf("#integer:%s\n", yytext);
@@ -228,7 +197,7 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	line_buf_ptr += strlen(yytext);
 }
 
-(([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)i)[eE][+-]?[0-9]+/[^\.]	{
+(([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))[eE][+-]?[0-9]+/[^\.0-9a-zA-Z_]	{
 /*scientific notation*/
 	if(token_on)
 		printf("#sci:%s\n", yytext);
@@ -242,6 +211,7 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
+#error
 .	{
 	fprintf(stderr, "Error at line %d: %s\n", num_lines, yytext);
 	exit(1);
