@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #define MAX_STR_CONST 2048
-int num_lines, char_counter;
+int num_lines = 1, char_counter;
 int source_on = 1, token_on = 1;
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
@@ -50,12 +50,13 @@ char *line_buf_ptr = line_buf;
 }
 <comment>\n	{
 /*new line*/
-		num_lines++;
+		//num_lines++;
 		*line_buf_ptr++ = '\0';
 		//printf("\n");
 		if(source_on)
 			printf("%d:%s\n", num_lines, line_buf);
 		line_buf_ptr = line_buf;
+		num_lines++;
 }
 <comment>[^\n]	{
 	strcpy(line_buf_ptr, yytext);
@@ -176,12 +177,13 @@ char *line_buf_ptr = line_buf;
 
 \n	{
 /*new line*/
-	num_lines++;
+	//num_lines++;
 	*line_buf_ptr++ = '\0';
 	//printf("-------line %d-------\n", num_lines);
 	if(source_on)
 		printf("%d:%s\n", num_lines, line_buf);
 	line_buf_ptr = line_buf;
+	num_lines++;
 }
 " "	{
 /*space*/
