@@ -37,16 +37,29 @@ char *line_buf_ptr = line_buf;
 "/*"	{
 	/*comment start*/
 		BEGIN(comment);
-		printf("/*");
+		//printf("/*");
+		strcpy(line_buf_ptr, yytext);
+		line_buf_ptr += strlen(yytext);
+		
 }
 <comment>"*/"	{
 		BEGIN(INITIAL);
-		printf("*/");
+		//printf("*/");
+		strcpy(line_buf_ptr, yytext);
+		line_buf_ptr += strlen(yytext);
 }
 <comment>\n	{
 /*new line*/
 		num_lines++;
-		printf("\n");
+		*line_buf_ptr++ = '\0';
+		//printf("\n");
+		if(source_on)
+			printf("%d:%s\n", num_lines, line_buf);
+		line_buf_ptr = line_buf;
+}
+<comment>[^\n]	{
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
 }
 
 
