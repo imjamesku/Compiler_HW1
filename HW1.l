@@ -206,6 +206,13 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
+([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)	{
+/*doubles*/
+	if(token_on)
+		printf("#double:%s\n", yytext);
+	strcpy(line_buf_ptr, yytext);
+	line_buf_ptr += strlen(yytext);
+}
 ([1-9][0-9]*|0)/[^0-9]	{
 /*Integers*/
 	if(token_on)
@@ -213,14 +220,8 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-([1-9][0-9]*|0)\.[0-9]+	{
-/*doubles*/
-	if(token_on)
-		printf("#double:%s\n", yytext);
-	strcpy(line_buf_ptr, yytext);
-	line_buf_ptr += strlen(yytext);
-}
-[0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+	{
+
+([0-9]+|[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)[eE][+-]?[0-9]+/"."	{
 /*scientific notation*/
 	if(token_on)
 		printf("#sci:%s\n", yytext);
