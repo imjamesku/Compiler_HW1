@@ -83,6 +83,8 @@ char *line_buf_ptr = line_buf;
 }
 \"	{/*string  starting quote*/
 		string_buf_ptr = string_buf;
+		strcpy(line_buf_ptr, yytext);
+		line_buf_ptr += yyleng;
 		BEGIN(string);
 	}
 <string>{
@@ -93,6 +95,9 @@ char *line_buf_ptr = line_buf;
 				printf("#string:%s\n", string_buf);
 			strcpy(line_buf_ptr, string_buf);
 			line_buf_ptr += strlen(string_buf);
+			strcpy(line_buf_ptr, yytext);
+			line_buf_ptr += yyleng;
+			
 		}
 	\n	{/*error - unterminated string constant*/
 
@@ -145,21 +150,21 @@ char *line_buf_ptr = line_buf;
 	}
 	[ -~]	{
 		if(token_on)
-			printf("#char:%c\n", yytext[0]);
+			printf("#char:\'%c\'\n", yytext[0]);
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
 	}
 	\\n	{
 		if(token_on)
-			printf("#char:\\n\n");
+			printf("#char:\'\\n\'\n");
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
 	}
 	\\t	{
 		if(token_on)
-			printf("#char:\\t\n");
+			printf("#char:\'\\t\'\n");
 		char_counter++;
 		strcpy(line_buf_ptr, yytext);
 		line_buf_ptr += strlen(yytext);
@@ -221,7 +226,7 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	line_buf_ptr += strlen(yytext);
 }
 
-([0-9]+|[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)[eE][+-]?[0-9]+/"."	{
+(([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)i)[eE][+-]?[0-9]+/[^\.]	{
 /*scientific notation*/
 	if(token_on)
 		printf("#sci:%s\n", yytext);
@@ -241,14 +246,12 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 }
 %%
 int main(int argc, char* argv[]){
-	--argc;
-	++argv;
 	//printf("arc = %d\n", argc);
 	//printf("arcv[0] = %s\n", argv[0]);
-	if(argc > 0)
+	/*if(argc > 0)
 		yyin = fopen(argv[0], "r");
 	else
-		yyin = stdin;
+		yyin = stdin;*/
 	yylex();
 	//printf("#num_lines = %d\n", num_lines);
 	return 0;
