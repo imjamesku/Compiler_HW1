@@ -83,7 +83,7 @@ char *line_buf_ptr = line_buf;
 	line_buf_ptr += strlen(yytext);
 }
 \".*\"	{
-/*strings  starting quote*/
+/*string  starting quote*/
 		strcpy(string_buf, yytext);
 		string_buf[yyleng-1] = '\0';
 		string_buf_ptr = string_buf+1;
@@ -164,7 +164,7 @@ char *line_buf_ptr = line_buf;
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue|const|true|false|struct|case|default|fclose|clearerr|feof|ferror|fflush|fgetpos|fopen|fread|freopen|fseek|fsetpos|ftell|fwrite|remove|rename|rewind|setbuf|setvbuf|tmpfile|tmpnam|fprintf|printf|sprintf|vfprintf|vprintf|vsprintf|fscanf|scanf|sscanf|fgetc|fgets|fputc|fputs|getc|getchar|gets|putc|putchar|puts|ungetc|perror	{
+(void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue|const|true|false|struct|case|default|fclose|clearerr|feof|ferror|fflush|fgetpos|fopen|fread|freopen|fseek|fsetpos|ftell|fwrite|remove|rename|rewind|setbuf|tmpfile|tmpnam|fprintf|printf|sprintf|vfprintf|vprintf|vsprintf|fscanf|scanf|sscanf|fgetc|fgets|fputc|fputs|getc|getchar|gets|putc|putchar|puts|ungetc|perror)/[^0-9a-zA-Z_]	{
 	if(token_on)
 		printf("#key:%s\n", yytext);
 	strcpy(line_buf_ptr, yytext);
@@ -204,7 +204,7 @@ void|int|double|bool|char|null|for|while|do|if|else|switch|return|break|continue
 	strcpy(line_buf_ptr, yytext);
 	line_buf_ptr += strlen(yytext);
 }
-[a-zA-Z_][a-zA-Z0-9_]*	{
+[a-zA-Z_][a-zA-Z0-9_]*/[^a-zA-Z_0-9]	{
 /*identifiers*/
 	if(token_on)
 		printf("#id:%s\n", yytext);
